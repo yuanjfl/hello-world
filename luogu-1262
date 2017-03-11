@@ -1,0 +1,103 @@
+//C++间谍网络
+#include<cstdio>
+#include<iostream>
+
+using namespace std;
+
+const int INF=1e9,N=3001,M=8997001;
+
+int n,m,t,tot,flag=0;
+int rudu[N],fir[N],nod[M],nex[M],mon[N],dfn[N],low[N],sta[N],bel[N],smon[N];
+bool vis[N];
+
+void add(int i,int x,int y)
+{
+    nod[i]=y;
+	nex[i]=fir[x];
+	fir[x]=i;
+}//lingjiebiao
+
+void dfs(int x)
+{
+    if(vis[x]) 
+		return;
+    vis[x]=1;
+	tot++;
+    for(int i=fir[x];i;i=nex[i]) 
+		dfs(nod[i]);
+}
+
+void tar(int x)
+{
+    dfn[x]=low[x]=++tot;
+	vis[x]=1;
+	sta[++t]=x;
+    for(int i=fir[x];i;i=nex[i])
+	{
+        int y=nod[i];
+        if(!dfn[y]) 
+		{
+			tar(y);
+			low[x]=min(low[x],low[y]);	
+		}
+        else if(vis[y]) 
+			low[x]=min(low[x],dfn[y]);
+    }
+    if(dfn[x]==low[x])
+	{
+        smon[x]=INF;
+        do{
+            vis[sta[t]]=0;
+            bel[sta[t]]=x;
+            smon[x]=min(smon[x],mon[sta[t]]);
+            t--; 
+        } while(sta[t+1]!=x);
+    }
+}//tarjansuodian
+
+int main()
+{
+    scanf("%d%d",&n,&m);
+    for(int i=1;i<=n;i++) 
+		mon[i]=INF;
+    for(int i=1;i<=m;i++)
+	{
+		int x,y;
+        scanf("%d%d",&x,&y);
+        mon[x]=y;
+    }
+    scanf("%d",&m);
+    for(int i=1;i<=m;i++)
+	{
+		int x,y;
+        scanf("%d%d",&x,&y);
+        add(i,x,y);
+    }
+    
+    for(int i=1;i<=n;i++) 
+		if(mon[i]!=INF) 
+			dfs(i);
+    if(tot<n) 
+	for(int i=1;i<=n;i++) 
+		if(!vis[i])
+		{
+        	printf("NO\n%d",i);
+    		return 0;
+    	}
+    tot=0;
+    for(int i=1;i<=n;i++) 
+		vis[i]=0;
+    for(int i=1;i<=n;i++) 
+		if(mon[i]!=INF&&!dfn[i]) 
+			tar(i);
+    for(int i=1;i<=n;i++)
+        for(int j=fir[i];j;j=nex[j])
+        	if(bel[i]!=bel[nod[j]]) 
+				rudu[bel[nod[j]]]++;
+    for(int i=1;i<=n;i++) 
+		if(bel[i]==i&&!rudu[i]) 
+			flag+=smon[i];
+    printf("YES\n%d",flag);
+    return 0;
+}
+//以及为什么全局int x，y会WA?
